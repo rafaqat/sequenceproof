@@ -2,12 +2,38 @@
 
 require "rails_helper"
 require "open3"
+require "tmpdir"
 
 RSpec.describe "SequenceProof security boundaries", type: :request do
   let(:token) { ENV.fetch("SEQUENCEPROOF_TOKEN") }
   let(:headers) { { "Authorization" => "Bearer #{token}", "Content-Type" => "application/json" } }
 
   def json = JSON.parse(response.body)
+
+  it "loads defaults supported by the active Rails version" do
+    expected_version = Rails.gem_version.segments.first(2).join(".").to_f
+
+    expect(SequenceProofDummy::Application.config.loaded_config_version).to eq(expected_version)
+  end
+
+  it "does not weaken the host controller CSRF strategy" do
+    expect(ApplicationController.forgery_protection_strategy)
+      .to eq(ActionController::RequestForgeryProtection::ProtectionMethods::Exception)
+  end
+
+  it "prepares a fresh campaign database after bootstrapping an ephemeral token" do
+    Dir.mktmpdir("sequenceproof-fresh-db-") do |directory|
+      database_url = "sqlite3:#{File.join(directory, 'campaign.sqlite3')}"
+      environment = { "RAILS_ENV" => "test", "DATABASE_URL" => database_url }
+      output, status = Open3.capture2e(
+        environment, RbConfig.ruby, "bin/rails", "sequenceproof:ephemeral_token", "db:prepare",
+        chdir: File.expand_path("../dummy", __dir__)
+      )
+
+      expect(status).to be_success, output
+      expect(File).to exist(File.join(directory, "campaign.sqlite3"))
+    end
+  end
 
   it "redacts canaries before responses and notifications are materialized" do
     canary = "SEQUENCEPROOF_SECRET_CANARY_7f31"

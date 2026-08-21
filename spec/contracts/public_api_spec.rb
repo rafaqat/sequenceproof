@@ -75,6 +75,20 @@ RSpec.describe SequenceProof::Rails do
     end.to raise_error(SequenceProof::Rails::IsolationError) { |error| expect(error.code).to eq("invalid_connection_class") }
   end
 
+  it "validates redaction pointers in linear time without changing RFC 6901 escapes" do
+    builder = SequenceProof::Rails::AdapterBuilder.new(:redaction_pointer, 1)
+    valid = ["", "/", "/plain/path", "/escaped~0tilde/escaped~1slash", "/#{'/' * 100_000}"]
+    invalid = ["missing-leading-slash", "/dangling~", "/invalid~2escape", "#{'/' * 100_000}~2"]
+
+    expect { builder.redact(*valid) }.not_to raise_error
+    invalid.each do |pointer|
+      expect { builder.redact(pointer) }
+        .to raise_error(SequenceProof::Rails::ConfigurationError) do |error|
+          expect(error.code).to eq("invalid_redaction_pointer")
+        end
+    end
+  end
+
   it "reloads app-owned adapter files without duplicates and restores the prior registry on failure" do
     file = Tempfile.new(["reloadable_adapter", ".rb"])
     source = <<~RUBY

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateSequenceProofDummySchema < ActiveRecord::Migration[8.1]
+class CreateSequenceProofDummySchema < ActiveRecord::Migration[7.1]
   def change
     create_table :tenants do |table|
       table.string :name, null: false
@@ -44,4 +44,3 @@ class CreateSequenceProofDummySchema < ActiveRecord::Migration[8.1]
     end
   end
 end
-

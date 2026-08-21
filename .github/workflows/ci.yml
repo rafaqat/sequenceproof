@@ -35,10 +35,15 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - run: npm ci
       - run: bundle exec rspec
       - run: bundle exec rubocop --format simple
 
@@ -102,6 +107,11 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm ci --prefix spec/dummy
+      - name: Prepare fresh reference database
+        working-directory: spec/dummy
+        run: bundle exec bin/rails sequenceproof:ephemeral_token db:prepare
+        env:
+          RAILS_ENV: test
       - name: Run 25,000-transition reference CI profile
         working-directory: spec/dummy
         run: bundle exec bin/rails 'sequenceproof:check[shopping_cart,ci]'

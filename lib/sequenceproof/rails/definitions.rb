@@ -54,6 +54,8 @@ module SequenceProof
     class AdapterBuilder
       # Shared syntax for all wire-visible identifiers.
       IDENTIFIER = /\A[a-z0-9][a-z0-9_.-]{0,127}\z/
+      JSON_POINTER_ESCAPES = %w[0 1].freeze
+      private_constant :JSON_POINTER_ESCAPES
       attr_reader :name, :version, :isolation_mode, :connection_classes, :setup_callback,
                   :cleanup_callback, :reset_callback, :actors, :commands, :observation_schema,
                   :observe_callback, :invariants, :redactions
@@ -137,7 +139,7 @@ module SequenceProof
       # Adds RFC 6901 JSON pointers removed from protocol responses.
       def redact(*json_pointers)
         json_pointers.map(&:to_s).each do |pointer|
-          unless pointer.empty? || pointer.match?(%r{\A/(?:[^~]|~[01])*(?:/(?:[^~]|~[01])*)*\z})
+          unless valid_redaction_pointer?(pointer)
             raise ConfigurationError.new(:invalid_redaction_pointer, "invalid JSON pointer: #{pointer}")
           end
 
@@ -175,6 +177,20 @@ module SequenceProof
       end
 
       private
+
+      def valid_redaction_pointer?(pointer)
+        return true if pointer.empty?
+        return false unless pointer.start_with?("/")
+
+        index = pointer.index("~")
+        while index
+          escape = pointer[index + 1]
+          return false unless JSON_POINTER_ESCAPES.include?(escape)
+
+          index = pointer.index("~", index + 2)
+        end
+        true
+      end
 
       def identifier!(value)
         candidate = value.to_s

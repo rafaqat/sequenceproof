@@ -16,7 +16,7 @@ end
 
 module SequenceProofDummy
   class Application < ::Rails::Application
-    config.load_defaults 8.1
+    config.load_defaults Rails.gem_version.segments.first(2).join(".").to_f
     config.root = File.expand_path("..", __dir__)
     config.eager_load = false
     config.secret_key_base = "sequenceproof-dummy-secret-key-base-which-is-test-only"
