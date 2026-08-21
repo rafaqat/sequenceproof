@@ -1,0 +1,30 @@
+version: 1
+profiles:
+  smoke:
+    runs: 10
+    max_steps: 25
+    size: 20
+    concurrency: 1
+    shrink: true
+    max_shrink_attempts: 250
+    max_shrink_time_ms: 10000
+    stop_on_failure: true
+  ci:
+    runs: 250
+    max_steps: 100
+    size: 100
+    concurrency: 2
+    shrink: true
+    max_shrink_attempts: 2000
+    max_shrink_time_ms: 60000
+    stop_on_failure: true
+  full:
+    runs: 2000
+    max_steps: 250
+    size: 250
+    concurrency: 4
+    shrink: true
+    max_shrink_attempts: 20000
+    max_shrink_time_ms: 300000
+    stop_on_failure: true
+
