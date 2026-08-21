@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sequenceproof:schema:problem:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "title", "status", "code", "request_id"],
+  "properties": {
+    "type": { "type": "string" },
+    "title": { "type": "string" },
+    "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "code": { "$ref": "#/$defs/identifier" },
+    "detail": { "type": "string" },
+    "request_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "code", "message"],
+        "properties": {
+          "path": { "type": "string" },
+          "code": { "$ref": "#/$defs/identifier" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,127}$" }
+  }
+}
+

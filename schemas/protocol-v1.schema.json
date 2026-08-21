@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sequenceproof:schema:protocol:v1",
+  "$defs": {
+    "json": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/$defs/json" } },
+        { "type": "object", "additionalProperties": { "$ref": "#/$defs/json" } }
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.-]{0,127}$"
+    },
+    "assertion_result": {
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pass"],
+          "properties": { "pass": { "const": true } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pass", "message"],
+          "properties": {
+            "pass": { "const": false },
+            "message": { "type": "string" },
+            "expected": { "$ref": "#/$defs/json" },
+            "actual": { "$ref": "#/$defs/json" },
+            "path": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "result"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "result": { "$ref": "#/$defs/assertion_result" }
+      }
+    },
+    "outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "value"],
+          "properties": {
+            "status": { "const": "ok" },
+            "value": { "$ref": "#/$defs/json" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "code"],
+          "properties": {
+            "status": { "const": "rejected" },
+            "code": { "$ref": "#/$defs/identifier" },
+            "value": { "$ref": "#/$defs/json" }
+          }
+        }
+      ]
+    },
+    "envelope": {
+      "type": "object",
+      "required": ["protocol", "protocol_version", "request_id"],
+      "properties": {
+        "protocol": { "const": "sequenceproof.protocol" },
+        "protocol_version": { "const": 1 },
+        "request_id": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "run_fields": {
+      "type": "object",
+      "required": ["run_id", "observation", "assertions"],
+      "properties": {
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "observation": { "$ref": "#/$defs/json" },
+        "assertions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/assertion" }
+        }
+      }
+    },
+    "run_response": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        { "$ref": "#/$defs/run_fields" }
+      ],
+      "unevaluatedProperties": false
+    },
+    "command_response": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        { "$ref": "#/$defs/run_fields" },
+        {
+          "type": "object",
+          "required": ["outcome"],
+          "properties": { "outcome": { "$ref": "#/$defs/outcome" } }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/run_response" },
+    { "$ref": "#/$defs/command_response" }
+  ]
+}
