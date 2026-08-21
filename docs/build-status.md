@@ -81,15 +81,41 @@ original regex and dummy-controller alerts closed. It was still not a green run:
   strategy broke ten authenticated JSON request examples without adding a security boundary, so
   alert 3 was dismissed as a documented false positive in GitHub rather than suppressed in source.
 
+## Merged `main` evidence
+
+PR #1 passed every required check at head `11810ce03be7af9ba5432368ba7e7925997841a3` and was
+squash-merged as `2b981c9f84bc65767d9f3875208f9dfadca5a1f9`. The post-merge push workflows then passed on that
+exact `main` commit: all five Ruby/Rails jobs, Node 20/22/24, package/generator smokes on Ubuntu and
+macOS, the freshly prepared 25,000-transition campaign, security gates, and both CodeQL analyses.
+
+As of 2026-08-21, private vulnerability reporting, dependency alerts, and automated security fixes
+are enabled. Active repository ruleset `21141603` requires pull requests, resolved review threads,
+and all 14 CI/CodeQL job checks bound to the GitHub Actions app; it also prevents force-pushes and
+deletion of `main`.
+
+## Consumer integration evidence (not yet immutable)
+
+TrustDesk consumed the exact merged Ruby commit and npm tarball, then exercised its real DSAR
+lifecycle through password + passkey and password + TOTP sessions. A fixed-seed CI profile passed
+25,000 transitions. Removing TrustDesk's viewer authorization gate failed and shrank to one command;
+that trace replays cleanly after restoration.
+
+The consumer's ordinary 2,025-example suite then found two packaging defects the reference dummy had
+not exposed: the generated initializer crashed production boots where the dev/test gem was absent,
+and eager loading inflected `sequenceproof` as `Sequenceproof`. The fixes are mutation-sensitive via
+the production boot matrix and a dedicated engine eager-load regression. Against the corrected local
+source, SequenceProof's complete Ruby/Node/docs gates pass and TrustDesk passes 2,025 examples, its
+typecheck, crypto tests, RuboCop, Brakeman, and dependency audits.
+
+This is worktree evidence, not release evidence. The corrected SequenceProof source must be committed,
+pass immutable-commit CI, and then be re-pinned and re-campaigned by TrustDesk before either package is
+eligible for publication.
+
 ## Release boundaries not satisfied by this snapshot
 
-- At this evidence cutoff, a fully green GitHub matrix and policy result on the latest remediation
-  commit had not yet been observed.
 - npm is not authenticated on this machine, so control of the `@sequenceproof` scope is not proven.
-- Private vulnerability reporting is currently disabled for the public repository, so the intended
-  confidential Security Advisory intake is not yet available.
 - No registry ownership, trademark/legal clearance, trusted publishing, tag, package publication,
-  release, merge, or deployment has been performed.
+  release, or deployment has been performed.
 
 The implementation is not release-signed-off until the exact committed artifact passes CI matrices
 and the remaining release boundaries are resolved.
