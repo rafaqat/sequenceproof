@@ -1,0 +1,70 @@
+plugins:
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  SuggestExtensions: false
+  Exclude:
+    - "spec/dummy/**/*"
+    - "vendor/**/*"
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Max: 40
+  Exclude:
+    - "spec/**/*"
+    - "*.gemspec"
+    - "lib/tasks/**/*"
+
+Metrics/MethodLength:
+  Max: 45
+  Exclude:
+    - "lib/tasks/**/*"
+
+Metrics/AbcSize:
+  Max: 60
+
+Metrics/CyclomaticComplexity:
+  Max: 20
+
+Metrics/PerceivedComplexity:
+  Max: 20
+
+Metrics/ClassLength:
+  Max: 220
+
+RSpec/MultipleExpectations:
+  Max: 8
+
+RSpec/ExampleLength:
+  Max: 40
+
+RSpec/InstanceVariable:
+  Exclude:
+    - "spec/generators/**/*"
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Exclude:
+    - "spec/integration/**/*"
+    - "spec/contracts/shared_wire_contracts_spec.rb"
+    - "spec/generators/**/*"
+
+Lint/EmptyBlock:
+  Exclude:
+    - "spec/**/*"
+
+Naming/PredicateMethod:
+  Enabled: false
+
+Naming/FileName:
+  Exclude:
+    - "lib/sequenceproof-rails.rb"

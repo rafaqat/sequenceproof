@@ -1,0 +1,6 @@
+test:
+  adapter: sqlite3
+  database: <%= File.expand_path("../tmp/sequenceproof-dummy.sqlite3", __dir__) %>
+  pool: 10
+  timeout: 5000
+

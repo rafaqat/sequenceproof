@@ -1,0 +1,18 @@
+/.bundle/
+/.yardoc/
+/coverage/
+/doc/
+node_modules/
+/pkg/
+/tmp/
+/.ruby-lsp/
+packages/core/dist/
+packages/core/coverage/
+spec/dummy/log/*.log
+spec/dummy/tmp/
+# Local evidence retained from the pre-rename StateForge implementation.
+spec/dummy/stateforge/traces/**
+spec/dummy/sequenceproof/traces/**
+!spec/dummy/sequenceproof/traces/.gitkeep
+sequenceproof/traces/**
+!sequenceproof/traces/.gitkeep

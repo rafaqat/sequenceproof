@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "fixtures": [
+    {
+      "name": "run response",
+      "schema": "protocol-v1.schema.json",
+      "valid": true,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-1",
+        "run_id": "run-1",
+        "observation": { "stock": 5 },
+        "assertions": [{ "name": "stock_nonnegative", "result": { "pass": true } }]
+      }
+    },
+    {
+      "name": "command response with outcome",
+      "schema": "protocol-v1.schema.json",
+      "valid": true,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-2",
+        "run_id": "run-1",
+        "outcome": { "status": "ok", "value": { "status": 201 } },
+        "observation": { "stock": 4 },
+        "assertions": [{ "name": "stock_nonnegative", "result": true }]
+      }
+    },
+    {
+      "name": "command response invalid outcome",
+      "schema": "protocol-v1.schema.json",
+      "valid": false,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-3",
+        "run_id": "run-1",
+        "outcome": { "status": "maybe", "value": null },
+        "observation": {},
+        "assertions": []
+      }
+    },
+    {
+      "name": "run response unknown member",
+      "schema": "protocol-v1.schema.json",
+      "valid": false,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-4",
+        "run_id": "run-1",
+        "observation": {},
+        "assertions": [],
+        "secret": "must-not-pass"
+      }
+    },
+    {
+      "name": "manifest",
+      "schema": "manifest-v1.schema.json",
+      "valid": true,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-5",
+        "sequenceproof_rails_version": "0.1.0",
+        "supported_protocol_versions": [1],
+        "adapter": { "name": "shopping_cart", "version": 1 },
+        "commands": [{
+          "id": "add_item",
+          "actors": ["customer"],
+          "input_schema": { "type": "object" },
+          "output_schema": {},
+          "metadata": {}
+        }],
+        "observation_schema": { "type": "object" },
+        "server_invariants": ["stock_nonnegative"],
+        "isolation": { "mode": "transaction", "resettable": true },
+        "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "manifest unknown member",
+      "schema": "manifest-v1.schema.json",
+      "valid": false,
+      "value": {
+        "protocol": "sequenceproof.protocol",
+        "protocol_version": 1,
+        "request_id": "request-6",
+        "sequenceproof_rails_version": "0.1.0",
+        "supported_protocol_versions": [1],
+        "adapter": { "name": "shopping_cart", "version": 1 },
+        "commands": [],
+        "observation_schema": {},
+        "server_invariants": [],
+        "isolation": { "mode": "transaction", "resettable": true },
+        "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "callback_source": "secret.rb:10"
+      }
+    },
+    {
+      "name": "problem",
+      "schema": "problem-v1.schema.json",
+      "valid": true,
+      "value": {
+        "type": "urn:sequenceproof:problem:unknown_command",
+        "title": "Unknown command",
+        "status": 404,
+        "code": "unknown_command",
+        "detail": "unknown command",
+        "request_id": "request-7"
+      }
+    },
+    {
+      "name": "problem invalid code",
+      "schema": "problem-v1.schema.json",
+      "valid": false,
+      "value": {
+        "type": "urn:sequenceproof:problem:unknown_command",
+        "title": "Unknown command",
+        "status": 404,
+        "code": "Unknown Command",
+        "request_id": "request-8"
+      }
+    },
+    {
+      "name": "passing empty trace",
+      "schema": "trace-v1.schema.json",
+      "valid": true,
+      "value": {
+        "schema": "urn:sequenceproof:schema:trace:v1",
+        "protocol_version": 1,
+        "core_version": "0.1.0",
+        "model": { "name": "counter", "version": 1 },
+        "adapter": { "name": "counter", "version": 1, "manifest_digest": "local" },
+        "run": { "id": "run-1", "seed": "fixture", "options": {}, "metadata": {} },
+        "status": "passed",
+        "initial": { "model": { "value": 0 }, "observation": { "value": 0 }, "properties": [] },
+        "steps": []
+      }
+    },
+    {
+      "name": "trace unknown member",
+      "schema": "trace-v1.schema.json",
+      "valid": false,
+      "value": {
+        "schema": "urn:sequenceproof:schema:trace:v1",
+        "protocol_version": 1,
+        "core_version": "0.1.0",
+        "model": { "name": "counter", "version": 1 },
+        "adapter": { "name": "counter", "version": 1, "manifest_digest": "local" },
+        "run": { "id": "run-1", "seed": "fixture", "options": {}, "metadata": {} },
+        "status": "passed",
+        "initial": { "model": { "value": 0 }, "observation": { "value": 0 }, "properties": [] },
+        "steps": [],
+        "executable": "must-not-pass"
+      }
+    }
+  ]
+}

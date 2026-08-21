@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sequenceproof:schema:manifest:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "protocol_version", "request_id", "sequenceproof_rails_version", "supported_protocol_versions", "adapter", "commands", "observation_schema", "server_invariants", "isolation", "digest"],
+  "properties": {
+    "protocol": { "const": "sequenceproof.protocol" },
+    "protocol_version": { "const": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "sequenceproof_rails_version": { "type": "string", "minLength": 1 },
+    "supported_protocol_versions": { "const": [1] },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": { "name": { "$ref": "#/$defs/identifier" }, "version": { "type": "integer", "minimum": 1 } }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "actors", "input_schema", "output_schema", "metadata"],
+        "properties": {
+          "id": { "$ref": "#/$defs/identifier" },
+          "actors": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+          "input_schema": { "type": "object" },
+          "output_schema": { "type": "object" },
+          "metadata": { "type": "object" }
+        }
+      }
+    },
+    "observation_schema": { "type": "object" },
+    "server_invariants": { "type": "array", "items": { "$ref": "#/$defs/identifier" }, "uniqueItems": true },
+    "isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "resettable"],
+      "properties": { "mode": { "enum": ["transaction", "callback"] }, "resettable": { "const": true } }
+    },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "$defs": { "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,127}$" } }
+}

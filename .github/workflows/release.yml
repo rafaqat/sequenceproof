@@ -1,0 +1,41 @@
+name: Release validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: npm ci
+      - run: npm run check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run package:smoke
+      - run: npm run docs
+      - run: bundle exec rspec
+      - run: bundle exec rubocop --format simple
+      - run: bundle exec rake package:smoke
+      - run: bundle exec rake docs
+      - run: bundle exec brakeman --rails8 -q -p spec/dummy
+      - run: bundle exec bundler-audit check --update
+      - run: npm audit --audit-level=high
+
+  publish-disabled:
+    needs: validate
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Publishing remains disabled until registry names, legal clearance, and trusted publishing are configured."

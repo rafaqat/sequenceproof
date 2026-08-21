@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+SequenceProof::Rails.configure do |config|
+  config.enabled_environments = %w[test]
+  config.mount_path = "<%= options[:mount_path] %>"
+  config.token = -> { ENV["SEQUENCEPROOF_TOKEN"] }
+end
+
+Rails.application.reloader.to_prepare do
+  adapter_paths = Rails.root.glob("{spec,test}/sequenceproof/adapters/*_adapter.rb")
+  SequenceProof::Rails.__reload_app_adapters!(adapter_paths)
+end
