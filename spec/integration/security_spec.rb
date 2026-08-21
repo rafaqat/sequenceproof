@@ -16,7 +16,7 @@ RSpec.describe "SequenceProof security boundaries", type: :request do
     expect(SequenceProofDummy::Application.config.loaded_config_version).to eq(expected_version)
   end
 
-  it "does not weaken the host controller CSRF strategy" do
+  it "uses exception-based CSRF protection for the session-backed host controller" do
     expect(ApplicationController.forgery_protection_strategy)
       .to eq(ActionController::RequestForgeryProtection::ProtectionMethods::Exception)
   end

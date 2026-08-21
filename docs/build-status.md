@@ -1,16 +1,17 @@
 # Build status
 
-Evidence below distinguishes local checks from the first immutable draft-PR run on 2026-08-21.
-Neither category is merged, published, or release evidence. The corrected remediation commit has not
-yet run in CI.
+Evidence below distinguishes local checks from two immutable draft-PR runs on 2026-08-21. Neither
+category is merged, published, or release evidence. This is an evidence snapshot, not a live status
+page; GitHub remains authoritative for later commits.
 
 ## Observed green
 
-- Ruby: `bundle exec rspec` — 49 examples, 0 failures; request, security, executor, registry,
+- Ruby: `bundle exec rspec` — 50 examples, 0 failures; request, security, executor, registry,
   generators, schema, shared protocol, reload, task, and test-helper behavior.
-- Rails compatibility: the complete 49-example suite passes locally against Rails 7.1, 7.2, 8.0,
+- Rails compatibility: the complete 49-example suite passed locally against Rails 7.1, 7.2, 8.0,
   and 8.1 under Ruby 3.3.9. The GitHub Ruby-version matrix remains the authoritative cross-Ruby
-  evidence.
+  evidence. The subsequently added bearer-authentication regression passes under the default Rails
+  8.1 bundle; it had not been rerun locally against those older bundles at this snapshot.
 - Ruby style: `bundle exec rubocop --format simple` — 47 files, 0 offenses.
 - TypeScript: `npm run check`, `npm run lint`, `npm test`, and `npm run build` — 9 test files and
   45 tests at the latest combined gate.
@@ -65,12 +66,25 @@ CodeQL language analyses passed. It was not a green run:
 - GitHub's CodeQL policy check reported an exponential-backtracking JSON Pointer regex and weakened
   CSRF protection in the dummy controller.
 
-Those findings are fixed and locally verified in the working tree described above. They remain
-unverified on an immutable corrected SHA until the PR reruns.
+The first findings were fixed in `a12562c04a17ddf6a1b9ce3f3d2e8972eb0c25ff`. Its immutable rerun
+passed Node 20, 22, and 24; packages/generators on Ubuntu and macOS; security gates; both explicit
+CodeQL language analyses; and the freshly prepared 25,000-transition reference campaign. The
+original regex and dummy-controller alerts closed. It was still not a green run:
 
-## Not yet observed
+- All five Ruby/Rails jobs reached the generated-adapter compile test but failed because `npm ci`
+  linked `@sequenceproof/core` without first building its exported `dist` declarations. The Ruby
+  job now runs `npm run build` before RSpec, matching the already-green campaign job.
+- CodeQL's policy aggregation found the engine protocol controller did not install session-oriented
+  CSRF middleware. The controller is an `ActionController::API` bearer-only endpoint: it accepts no
+  cookie/session authentication and authenticates every route with an explicit authorization token.
+  A host-session-cookie plus cross-origin-write regression returns 401. Adding Rails' forgery
+  strategy broke ten authenticated JSON request examples without adding a security boundary, so
+  alert 3 was dismissed as a documented false positive in GitHub rather than suppressed in source.
 
-- A fully green GitHub matrix and CodeQL policy result on the corrected remediation SHA.
+## Release boundaries not satisfied by this snapshot
+
+- At this evidence cutoff, a fully green GitHub matrix and policy result on the latest remediation
+  commit had not yet been observed.
 - npm is not authenticated on this machine, so control of the `@sequenceproof` scope is not proven.
 - Private vulnerability reporting is currently disabled for the public repository, so the intended
   confidential Security Advisory intake is not yet available.

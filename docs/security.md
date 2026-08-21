@@ -7,6 +7,7 @@ test process. Never mount it on a shared or production application.
 |---|---|---|
 | Accidental production enablement | Production boot aborts; test-only defaults | Keep production config and secrets separate |
 | Unauthenticated discovery/execution | Every endpoint, including health/manifest, requires a 32-byte bearer token compared in constant time | Protect process environment and CI logs |
+| Cross-site request forgery | The API accepts no cookie/session authentication; every route requires an explicit bearer header | Do not add ambient browser credentials to protocol authentication |
 | Malicious command input | Strict JSON bodies, size limits, closed schemas, identifiers, allow-listed callbacks | Adapter callbacks remain trusted code |
 | Cross-run/session access | Random server run IDs, bounded registry, per-run runtime lock, per-actor cookie jars | Callback reset must scope records correctly |
 | Stale or changed retry | Monotonic steps plus payload fingerprint and manifest digest | Application idempotency remains a domain property |
@@ -20,6 +21,10 @@ The client permits `http://` only for `127.0.0.1`, `localhost`, and `::1`; remot
 TLS. Custom headers cannot override authorization. The controller logs exception classes only by
 default, and notification payloads contain identifiers/status/duration—not inputs, observations,
 cookies, SQL, or stored Ruby objects.
+
+The protocol controller inherits from `ActionController::API` and intentionally does not install
+Rails' session-oriented forgery middleware. A host application's authenticated session cookie does
+not authenticate protocol requests; adding a valid `Authorization: Bearer ...` header is mandatory.
 
 Use `redact "/path"` in adapters and configure a recursive global redactor for organization-wide
 secrets. Test redaction with canaries in successful values and failures. Artifact directories are

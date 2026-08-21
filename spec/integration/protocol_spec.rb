@@ -117,6 +117,20 @@ RSpec.describe "SequenceProof protocol", type: :request do
     expect(json).to include("protocol_version" => 1, "status" => "ok")
   end
 
+  it "does not accept a host session cookie in place of bearer authentication" do
+    tenant = Tenant.create!(name: "cookie-auth-boundary")
+    user = User.create!(tenant:, email: "cookie-auth@example.test", role: "admin")
+    post "/test/sign_in", params: { user_id: user.id }
+    expect(response).to have_http_status(:no_content)
+
+    post "/__sequenceproof/v1/adapters/shopping_cart/runs",
+         params: JSON.generate(seed: "browser-origin", metadata: {}),
+         headers: { "Content-Type" => "application/json", "Origin" => "https://attacker.example" }
+
+    expect(response).to have_http_status(:unauthorized)
+    expect(json.fetch("code")).to eq("unauthorized")
+  end
+
   it "keeps actor cookie jars isolated across alternating commands" do
     adapter_manifest = manifest
     run = create_run

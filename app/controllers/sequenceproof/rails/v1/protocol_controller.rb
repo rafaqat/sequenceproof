@@ -6,6 +6,9 @@ module SequenceProof
       class ProtocolController < ::ActionController::API
         IDENTIFIER = /\A[a-z0-9][a-z0-9_.-]{0,127}\z/
 
+        # This JSON API deliberately accepts no cookie or session authentication. Every route,
+        # including health, requires the explicit bearer token below, so a browser-originated
+        # cross-site request cannot authenticate by ambient authority.
         before_action :authenticate!
         before_action :enforce_request_size!
 
