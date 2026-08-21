@@ -31,6 +31,18 @@ RSpec.describe "SequenceProof generators" do
                                aliases: false)).to include("version" => 1)
   end
 
+  it "generates an initializer that is inert when the dev/test-only gem is absent" do
+    SequenceProof::Generators::InstallGenerator.start(
+      ["--skip-package-install", "--test-framework=rspec"], destination_root: @destination
+    )
+    initializer = File.join(@destination, "config/initializers/sequenceproof.rb")
+
+    output, status = Open3.capture2e(RbConfig.ruby, initializer)
+
+    expect(status).to be_success, output
+    expect(File.read(initializer)).to include("SequenceProof::Rails.respond_to?(:configure)")
+  end
+
   it "revokes generated files and package entries without deleting existing package content" do
     install_arguments = ["--skip-package-install", "--test-framework=rspec"]
     model_arguments = ["ShoppingCart", "add_item", "--test-framework=rspec"]
