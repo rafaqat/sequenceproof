@@ -1,0 +1,74 @@
+{
+  "name": "@sequenceproof/core",
+  "version": "0.1.0",
+  "description": "Deterministic model-based testing for stateful systems",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "SequenceProof contributors",
+  "homepage": "https://github.com/rafaqat/sequenceproof#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaqat/sequenceproof.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/rafaqat/sequenceproof/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "sequenceproof": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol/index.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc --project tsconfig.build.json && node scripts/postbuild.mjs",
+    "check": "npm run schemas:check && tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src test",
+    "docs": "typedoc --options typedoc.json",
+    "pack:check": "npm pack --dry-run",
+    "schemas:check": "node scripts/sync-schemas.mjs --check",
+    "schemas:sync": "node scripts/sync-schemas.mjs"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.19.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.48.1",
+    "typedoc": "^0.28.20",
+    "vitest": "^4.0.15"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "sequenceproof-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "packageManager": "npm@11.6.2",
+  "overrides": {
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @sequenceproof/core",
+    "check": "node scripts/check-versions.mjs && npm run check --workspace @sequenceproof/core",
+    "test": "npm run test --workspace @sequenceproof/core",
+    "lint": "npm run lint --workspace @sequenceproof/core",
+    "docs": "npm run docs --workspace @sequenceproof/core",
+    "pack:check": "npm run pack:check --workspace @sequenceproof/core",
+    "package:smoke": "node scripts/package-smoke.mjs",
+    "versions:check": "node scripts/check-versions.mjs"
+  }
+}
