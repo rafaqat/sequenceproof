@@ -1,0 +1,9 @@
+{
+  "name": "sequenceproof-dummy",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@sequenceproof/core": "file:../../packages/core"
+  }
+}
+

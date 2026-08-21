@@ -1,0 +1,46 @@
+name: Full SequenceProof campaign
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: Reproduction seed (blank uses the workflow run ID)
+        required: false
+        type: string
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix spec/dummy
+      - name: Run 500,000-transition full profile
+        working-directory: spec/dummy
+        run: bundle exec bin/rails 'sequenceproof:check[shopping_cart,full]'
+        env:
+          RAILS_ENV: test
+          SEQUENCEPROOF_SEED: ${{ inputs.seed || format('nightly-{0}', github.run_id) }}
+      - name: Upload sensitive SequenceProof traces
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sequenceproof-full-${{ github.run_id }}
+          path: spec/dummy/sequenceproof/traces/
+          if-no-files-found: error
+          retention-days: 30

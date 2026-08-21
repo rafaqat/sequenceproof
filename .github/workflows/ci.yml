@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ruby:
+    name: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby: "3.2"
+            rails: "7.1"
+            gemfile: rails_7_1
+          - ruby: "3.3"
+            rails: "7.2"
+            gemfile: rails_7_2
+          - ruby: "3.4"
+            rails: "8.0"
+            gemfile: rails_8_0
+          - ruby: "3.4"
+            rails: "8.1"
+            gemfile: rails_8_1
+          - ruby: "4.0"
+            rails: "8.1"
+            gemfile: rails_8_1
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle exec rspec
+      - run: bundle exec rubocop --format simple
+
+  node:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run pack:check
+
+  package-and-generators:
+    name: Packages and generators / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: npm ci
+      - run: npm run package:smoke
+      - run: bundle exec rake package:smoke
+      - run: npm run docs
+      - run: bundle exec rake docs
+      - run: bundle exec rspec spec/generators spec/contracts/test_runner_spec.rb
+
+  sequenceproof-campaign:
+    name: SequenceProof CI campaign
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix spec/dummy
+      - name: Run 25,000-transition reference CI profile
+        working-directory: spec/dummy
+        run: bundle exec bin/rails 'sequenceproof:check[shopping_cart,ci]'
+        env:
+          RAILS_ENV: test
+          SEQUENCEPROOF_SEED: pr-${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Upload SequenceProof traces
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sequenceproof-ci-${{ github.sha }}
+          path: spec/dummy/sequenceproof/traces/
+          if-no-files-found: error
+          retention-days: 14
+
+  security:
+    name: Security gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: npm ci
+      # The intentionally minimal dummy has no local Gemfile, so Brakeman cannot infer
+      # its Rails generation. Force modern Rails parsing; dependency CVEs are checked below.
+      - run: bundle exec brakeman --rails8 -q -p spec/dummy
+      - run: bundle exec bundler-audit check --update
+      - run: npm audit --audit-level=high
+      - name: Secret scan
+        uses: docker://ghcr.io/gitleaks/gitleaks:v8.30.1
+        with:
+          args: detect --source=/github/workspace --redact --verbose
